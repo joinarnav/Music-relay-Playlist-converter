@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Auth</title>
+</head>
+<body>
+  <h1>Spotify Authentication</h1>
+
+  <script>
+    // Extract the 'code' and 'state' parameters from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    // Call the backend route to get the token
+    if (code && state) {
+        window.location.href = `http://localhost:3000/spotify/getToken?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+    } else {
+      console.error('Missing code or state in the URL parameters');
+    }
+  </script>
+</body>
+</html>
