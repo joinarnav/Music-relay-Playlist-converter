@@ -1,10 +1,8 @@
 const {Router}= require('express');
 const router= Router();
 require('dotenv').config();
-const { v4: uuidv4 } = require('uuid');
-const QueryString = require("querystring");
-const path= require('path');
 const {google} = require('googleapis');
+const { oauth2 } = require('googleapis/build/src/apis/oauth2');
 
 
 
@@ -25,11 +23,53 @@ router.route('/login').get(async (req,res)=>{
     });
 
     res.status(200).json({authUrl});
-    
 
 })
 
-router.route('/youtube/getToken').get(async (req,res)=>{
+router.route('/getToken').get(async (req,res)=>{
+    const code = req.query.code
+    console.log(code);
+    if(!code){
+        return res.status(400)
+        .json({
+            message: "didn't find code"
+        })
+    }
+    
+    try {
+        const client_id=process.env.YOUTUBE_CLIENT_ID;
+        
+        const redirect_uri=process.env.YOUTUBE_REDIRECT_URI;
+        const client_secret= process.env.YOUTUBE_CLIENT_SECRET;
+    
+        const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+        
+        const { tokens } = await oAuth2Client.getToken(code)
+        console.log(tokens);
+    
+        if(tokens && tokens.access_token){
+            oAuth2Client.setCredentials(tokens);
+
+            res.cookie("Youtube_access_token", tokens.access_token, {
+                httpOnly: true,
+                path: '/',
+                maxAge: 60 * 60 * 1000,  // maxAge is in milliseconds
+            });
+    
+            return res.status(200).redirect("http://localhost:5173")
+        }else{
+            return res.status(400)
+            .json({
+                message: "token not generated"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        
+    }
+
+    
+    
     
 })
 

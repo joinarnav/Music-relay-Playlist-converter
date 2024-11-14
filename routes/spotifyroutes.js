@@ -68,10 +68,16 @@ router.route("/getToken").get(async (req,res)=>{
     }
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', authOptions);    
     const tokenData = await tokenResponse.json();
-    console.log("here4");
 
+    res.cookie("Spotify_access_token", tokenData.access_token, {
+        httpOnly: true,
+        path: '/',
+        maxAge: 60 * 60,  // maxAge is in milliseconds
+    });
+    // return res
+    return res.redirect("http://localhost:5173");
 
-    console.log(tokenData);
+    // console.log(tokenData);
 })
 // app.get("/spotify/getToken", async(req, res) => {
 //     const client_id = process.env.SPOTIFY_CLIENT_ID;
