@@ -3,9 +3,7 @@ const router= Router();
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
 const QueryString = require("querystring");
-const path= require('path');
-
-
+const axios = require('axios');
 
 router.route("/login").get((req,res)=>{
     console.log("here");
@@ -72,7 +70,9 @@ router.route("/getToken").get(async (req,res)=>{
     res.cookie("Spotify_access_token", tokenData.access_token, {
         httpOnly: true,
         path: '/',
-        maxAge: 60 * 60,  // maxAge is in milliseconds
+        secure: false,
+        sameSite: 'Lax',
+        maxAge: 60 * 60 * 1000,  // maxAge is in milliseconds
     });
     // return res
     return res.redirect("http://localhost:5173");
@@ -106,6 +106,34 @@ router.route("/getToken").get(async (req,res)=>{
 
 //     console.log(tokenData);
 // })
+
+router.route("/getPlaylist").get(async (req,res)=>{
+    console.log("get playlist");
+    
+    const cookie = req.cookies.Spotify_access_token;
+    console.log(cookie);
+    
+    if( cookie){
+        const result = await axios.get("https://api.spotify.com/v1/me/playlists", {
+            headers:{
+                Authorization: `Bearer ${cookie}`
+            }
+        })        
+
+        if(result){
+            return res.status(200).json(result.data)
+        }else{
+            return res.status(200).json({
+                "message" : "no playlist"
+            })
+        }
+        
+    }else{
+        return res.status(400).json({
+            "message" : "failed to get user Playlists"
+        })
+    }
+})
 
 
 module.exports= router;
